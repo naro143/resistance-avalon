@@ -15,7 +15,7 @@ app
 
     server.use(bodyParser())
 
-    server.post('/chat', (req: Request, res: Response) => {
+    server.post('/room', (req: Request, res: Response) => {
       console.log('body', req.body)
       postIO(req.body)
       res.status(200).json({ message: 'success' })
