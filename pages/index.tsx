@@ -1,62 +1,38 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import io from 'socket.io-client'
 import { Container, Button, InputBase, Box } from '@material-ui/core'
 import { MeetingRoom } from '@material-ui/icons'
 
 type ContainerProps = {}
 
-type EnterRoomType = {
-  roomKey: string
-}
-
 const Home = (props: ContainerProps) => {
-  const [socket, _] = useState(() => io())
-  const [isConnected, setIsConnected] = useState(false)
-  const [newEnterRoom, setNewEnterRoom] = useState<EnterRoomType>({
-    roomKey: '',
-  })
-  const [roomKey, setRoomKey] = useState<string>('')
-
-  useEffect(() => {
-    socket.on('connect', () => {
-      console.log('socket connected!!')
-      setIsConnected(true)
-    })
-    socket.on('disconnect', () => {
-      console.log('socket disconnected!!')
-      setIsConnected(false)
-    })
-    socket.on('update-data', (newData: EnterRoomType) => {
-      console.log('Get Updated Data', newData)
-      setNewEnterRoom(newData)
-    })
-
-    return () => {
-      socket.close()
-    }
-  }, [])
+  const router = useRouter()
+  const [playerName, setPlayerName] = useState<string>('')
 
   const handleSubmit = async () => {
-    await fetch(location.href + 'room', {
+    console.log(location.href)
+    await fetch(location.href + 'join-game', {
       method: 'POST',
       mode: 'cors',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        roomKey,
+        playerName,
       })
+    }).then((response) => {
+      if (response.ok) router.push('/players')
+    }).catch((error) => {
+      console.error(error)
     })
-    setRoomKey('')
   }
 
   return (
     <StyledComponent
       {...props}
-      isConnected={isConnected}
-      roomKey={roomKey}
-      setRoomKey={setRoomKey}
+      playerName={playerName}
+      setPlayerName={setPlayerName}
       handleSubmit={handleSubmit}
     />
   )
@@ -64,9 +40,8 @@ const Home = (props: ContainerProps) => {
 
 type Props = ContainerProps & {
   className?: string
-  isConnected: boolean
-  roomKey: string
-  setRoomKey: (value: string) => void
+  playerName: string
+  setPlayerName: (value: string) => void
   handleSubmit: () => void
 }
 
@@ -79,9 +54,9 @@ const Component = (props: Props) => (
           <Box p={1} flex={1}>
             <InputBase
               required
-              placeholder="Please enter your ROOM ID"
-              value={props.roomKey}
-              onChange={(e) => props.setRoomKey(e.target.value)}
+              placeholder="プレイヤー名を入力してください。"
+              value={props.playerName}
+              onChange={(e) => props.setPlayerName(e.target.value)}
               fullWidth
             />
           </Box>
@@ -90,7 +65,7 @@ const Component = (props: Props) => (
             variant="contained"
             color="primary"
             size="medium"
-            disabled={!props.roomKey || !props.isConnected}
+            disabled={!props.playerName}
             onClick={() => props.handleSubmit()}
           >
             <MeetingRoom/>
@@ -101,8 +76,6 @@ const Component = (props: Props) => (
   </Container>
 )
 
-const StyledComponent = styled(Component)`
-  
-`
+const StyledComponent = styled(Component)``
 
 export default Home
